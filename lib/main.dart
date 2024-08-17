@@ -18,7 +18,6 @@ void main() async {
 
   runApp(MyApp(camera: firstCamera));
 }
-
 class MyApp extends StatelessWidget {
   final CameraDescription camera;
 
@@ -26,13 +25,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomeScreen(), // Pass the camera to HomeScreen
+      home: HomeScreen(camera: camera), // Pass the camera to HomeScreen
     );
   }
 }

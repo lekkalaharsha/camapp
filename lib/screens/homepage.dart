@@ -4,14 +4,19 @@ import 'package:image_picker/image_picker.dart';
 import 'chatscreen.dart'; // Import your chat screen here
 
 class HomeScreen extends StatefulWidget {
+  final CameraDescription camera;
+
+  const HomeScreen({super.key, required this.camera});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
   late CameraController _cameraController;
-  List<CameraDescription>? _cameras;
+  int _selectedIndex = 0;
+
+  // Define the screens to be displayed
 
   @override
   void initState() {
@@ -20,24 +25,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeCamera() async {
-    // Fetch the available cameras
-    _cameras = await availableCameras();
-    if (_cameras!.isNotEmpty) {
-      // Initialize the first camera
-      _cameraController = CameraController(
-        _cameras!.first,
-        ResolutionPreset.high,
-      );
+    _cameraController = CameraController(
+      widget.camera,
+      ResolutionPreset.high,
+    );
 
-      try {
-        await _cameraController.initialize();
-      } catch (e) {
-        print('Error initializing camera: $e');
-      }
+    try {
+      await _cameraController.initialize();
+    } catch (e) {
+      print('Error initializing camera: $e');
+    }
 
-      if (mounted) {
-        setState(() {});
-      }
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -53,19 +53,35 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _openCamera(BuildContext context) async {
+  Future<void> _takePicture() async {
     if (_cameraController.value.isInitialized) {
       try {
         XFile file = await _cameraController.takePicture();
         if (file != null) {
+          String prompt;
+          switch (_selectedIndex) {
+            case 0: // Explore
+              prompt = "Describe the image?";
+              break;
+            case 1: // Text
+              prompt = "what is food item";
+              break;
+              case 2: // Text
+              prompt = "Read the text";
+              break;
+              case 3: // Text
+              prompt = "Read the Documents";
+              break;
+            default:
+              prompt = "Describe the image?";
+              break;
+          }
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => Chatscreen(
                 imagePath: file.path,
-                // prompt: _selectedIndex == 2
-                //     ? "Read the text"
-                //     : "Describe the image?",
+                prompt: prompt,
               ),
             ),
           );
@@ -80,30 +96,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Define the screens to be displayed
-    final List<Widget> _screens = [
-      Center(child: Text('Explore Screen')),
-      Center(child: Text('Food Labels Screen')),
-      Center(child: Text('Text Screen')),
-      Center(child: Text('Documents Screen')),
-    ];
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('My App'),
+        title: const Text('Welcome BOB',style: TextStyle(color: Colors.blueAccent),),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: Icon(Icons.person_outline, color: Colors.blue),
-            onPressed: () {},
+            icon: const Icon(Icons.person_outline, color: Colors.blue),
+            onPressed: () {
+              
+            },
           ),
         ],
       ),
-      body: _selectedIndex == 0 && _cameraController.value.isInitialized
-          ? SizedBox.expand(
-              child: CameraPreview(_cameraController),
-            )
-          : _screens[_selectedIndex],
+      body: SizedBox.expand(
+        child: CameraPreview(_cameraController),
+      ),
       bottomNavigationBar: Container(
         color: Colors.black,
         padding: EdgeInsets.symmetric(vertical: 10),
@@ -121,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openCamera(context),
+        onPressed: _takePicture,
         child: Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

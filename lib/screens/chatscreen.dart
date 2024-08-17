@@ -8,23 +8,24 @@ import 'package:image_picker/image_picker.dart';
 
 class Chatscreen extends StatefulWidget {
   final String? imagePath; // The captured image path
+  final String? prompt; // The prompt for the image
 
-  const Chatscreen({super.key, this.imagePath});
+  const Chatscreen({super.key, this.imagePath, this.prompt});
 
   @override
   State<Chatscreen> createState() => _ChatscreenState();
 }
 
 class _ChatscreenState extends State<Chatscreen> {
-  final Gemini gemini = Gemini.instance; // Assuming Gemini is a class you have
+  final Gemini gemini = Gemini.instance;
   List<ChatMessage> messages = [];
 
-  ChatUser currentUser = ChatUser(id: "0", firstName: "User");
+  ChatUser currentUser = ChatUser(id: "0", firstName: "User",);
   ChatUser geminiUser = ChatUser(
     id: "1",
     firstName: "Gemini",
     profileImage:
-        "https://seeklogo.com/images/G/google-gemini-logo-A5787B2669-seeklogo.com.png",
+        "assets/images/download.jpeg",
   );
 
   @override
@@ -40,9 +41,7 @@ class _ChatscreenState extends State<Chatscreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text(
-          "Gemini Chat",
-        ),
+        title: const Text("AI for all"),
       ),
       body: _buildUI(),
     );
@@ -53,9 +52,7 @@ class _ChatscreenState extends State<Chatscreen> {
       inputOptions: InputOptions(trailing: [
         IconButton(
           onPressed: _sendMediaMessageFromCamera,
-          icon: const Icon(
-            Icons.image,
-          ),
+          icon: const Icon(Icons.image),
         )
       ]),
       currentUser: currentUser,
@@ -64,7 +61,6 @@ class _ChatscreenState extends State<Chatscreen> {
     );
   }
 
-  // Method to send a regular message
   void _sendMessage(ChatMessage chatMessage) {
     setState(() {
       messages = [chatMessage, ...messages];
@@ -73,12 +69,11 @@ class _ChatscreenState extends State<Chatscreen> {
     _getGeminiResponse(chatMessage);
   }
 
-  // Method to send a media message when the image is captured
   void _sendMediaMessage(String imagePath) {
     ChatMessage chatMessage = ChatMessage(
       user: currentUser,
       createdAt: DateTime.now(),
-      text: "Describe the picture?",
+      text: widget.prompt ?? "Describe the picture?",
       medias: [
         ChatMedia(
           url: imagePath,
@@ -90,18 +85,16 @@ class _ChatscreenState extends State<Chatscreen> {
     _sendMessage(chatMessage);
   }
 
-  // Method to capture an image and send it as a media message
   void _sendMediaMessageFromCamera() async {
     ImagePicker picker = ImagePicker();
     XFile? file = await picker.pickImage(
       source: ImageSource.camera,
     );
     if (file != null) {
-      _sendMediaMessage(file.path); // Send the captured image
+      _sendMediaMessage(file.path);
     }
   }
 
-  // Method to get a response from Gemini
   void _getGeminiResponse(ChatMessage chatMessage) {
     try {
       String question = chatMessage.text;
@@ -128,7 +121,7 @@ class _ChatscreenState extends State<Chatscreen> {
             messages = [
               lastMessage!,
               ...messages
-            ]; // Use `!` to assert it's non-null
+            ];
           });
         } else {
           String response = event.content?.parts?.fold(

@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              _buildNavItem(Icons.explore, 'Explore', 0,),
+              _buildNavItem(Icons.explore, 'Explore', 0),
               _buildNavItem(Icons.qr_code, 'Food labels', 1),
               _buildNavItem(Icons.text_fields, 'Text', 2),
               _buildNavItem(Icons.document_scanner, 'Documents', 3),
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openCamera(context), // Open camera on button press
+        onPressed: () => _openCamera(context),
         child: Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -80,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNavItem(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
-      
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(

@@ -23,7 +23,7 @@ class _ChatscreenState extends State<Chatscreen> {
   ChatUser currentUser = ChatUser(id: "0", firstName: "User",);
   ChatUser geminiUser = ChatUser(
     id: "1",
-    firstName: "Gemini",
+    firstName: "AI for all ",
     profileImage:
         "assets/images/download.jpeg",
   );

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:camapp/screens/constapi.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 
-void main()async{
+void main() {
   Gemini.init(
     apiKey: GEMINI_API_KEY,
     );

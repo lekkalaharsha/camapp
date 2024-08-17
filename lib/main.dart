@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:camapp/screens/homepage.dart';
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
 import 'package:camapp/screens/constapi.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 

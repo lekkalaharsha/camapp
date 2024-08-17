@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
-import 'chatscreen.dart'; // Assuming the Chatscreen is in another file
+import 'chatscreen.dart'; // Import your chat screen here
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -9,13 +10,42 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  late CameraController _cameraController;
+  List<CameraDescription>? _cameras;
 
-  final List<Widget> _screens = [
-    Center(child: Text('Explore Screen')),
-    Center(child: Text('Food Labels Screen')),
-    Center(child: Text('Text Screen')),
-    Center(child: Text('Documents Screen')),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    // Fetch the available cameras
+    _cameras = await availableCameras();
+    if (_cameras!.isNotEmpty) {
+      // Initialize the first camera
+      _cameraController = CameraController(
+        _cameras!.first,
+        ResolutionPreset.high,
+      );
+
+      try {
+        await _cameraController.initialize();
+      } catch (e) {
+        print('Error initializing camera: $e');
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -24,21 +54,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openCamera(BuildContext context) async {
-    ImagePicker picker = ImagePicker();
-    XFile? file = await picker.pickImage(source: ImageSource.camera);
-
-    if (file != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Chatscreen(imagePath: file.path),
-        ),
-      );
+    if (_cameraController.value.isInitialized) {
+      try {
+        XFile file = await _cameraController.takePicture();
+        if (file != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Chatscreen(
+                imagePath: file.path,
+                // prompt: _selectedIndex == 2
+                //     ? "Read the text"
+                //     : "Describe the image?",
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        print('Error capturing image: $e');
+      }
+    } else {
+      print('Camera is not initialized');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Define the screens to be displayed
+    final List<Widget> _screens = [
+      Center(child: Text('Explore Screen')),
+      Center(child: Text('Food Labels Screen')),
+      Center(child: Text('Text Screen')),
+      Center(child: Text('Documents Screen')),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text('My App'),
@@ -46,13 +95,15 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.person_outline, color: Colors.blue),
-            onPressed: () {
-              print("hi");
-            },
+            onPressed: () {},
           ),
         ],
       ),
-      body: _screens[_selectedIndex],
+      body: _selectedIndex == 0 && _cameraController.value.isInitialized
+          ? SizedBox.expand(
+              child: CameraPreview(_cameraController),
+            )
+          : _screens[_selectedIndex],
       bottomNavigationBar: Container(
         color: Colors.black,
         padding: EdgeInsets.symmetric(vertical: 10),

@@ -37,6 +37,9 @@ dependencies:
   camera: ^0.11.0+2  # Check for the latest version
   path_provider: ^2.0.11  # Check for the latest version
   permission_handler: ^11.3.1  # Check for the latest versio
+  dash_chat_2: ^0.0.21
+  image_picker: ^1.1.2
+  flutter_gemini: ^2.0.5
 
 dev_dependencies:
   flutter_test:

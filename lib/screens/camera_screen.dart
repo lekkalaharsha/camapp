@@ -18,6 +18,7 @@ class _CameraScreenState extends State<CameraScreen> {
     _initializeCamera();
   }
 
+  // Initialize the camera controller
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final firstCamera = cameras.first;
@@ -31,18 +32,14 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() {}); // Refresh to show camera preview
   }
 
+  // Method to capture an image and return the file path
   Future<void> _captureImage() async {
     try {
       await _initializeControllerFuture;
       final image = await _controller.takePicture();
 
       if (image != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DisplayImageScreen(imageFile: File(image.path)),
-          ),
-        );
+        Navigator.pop(context, image.path); // Return the image path to the previous screen
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +62,7 @@ class _CameraScreenState extends State<CameraScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.camera_alt),
-            onPressed: _captureImage,
+            onPressed: _captureImage, // Capture the image when the camera icon is tapped
           ),
         ],
       ),
@@ -73,11 +70,11 @@ class _CameraScreenState extends State<CameraScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return CameraPreview(_controller);
+            return CameraPreview(_controller); // Show the camera preview
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator()); // Show a loading indicator while the camera initializes
           }
         },
       ),

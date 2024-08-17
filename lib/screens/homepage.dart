@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'camera_screen.dart'; // Import the camera screen file
+import 'chatscreen.dart'; // Import the chat screen file
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -13,15 +14,26 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
 
-  void _onBottomNavBarTapped(int index) {
+  // Method to handle navigation when a bottom nav bar item is tapped
+  void _onBottomNavBarTapped(int index) async {
     if (index == 1) {
-      // Navigate to the camera screen directly
-      Navigator.pushReplacement(
+      // Navigate to the camera screen directly and capture an image
+      final imagePath = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => CameraScreen(),
         ),
       );
+
+      // If an image was captured, navigate to the chat screen and pass the image path
+      if (imagePath != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Chatscreen(imagePath: imagePath),
+          ),
+        );
+      }
     } else {
       // Handle other navigation items if needed
       setState(() {
@@ -55,6 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Widget to build each item in the bottom navigation bar
   Widget _buildNavBarItem(int index, IconData icon, String label) {
     bool isSelected = _currentIndex == index;
     return GestureDetector(
@@ -70,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
               size: 30, // Increase icon size
               color: isSelected ? Colors.blue : Colors.grey,
             ),
-            SizedBox(height: 4), // Space between icon and label
+            const SizedBox(height: 4), // Space between icon and label
             Text(
               label,
               style: TextStyle(

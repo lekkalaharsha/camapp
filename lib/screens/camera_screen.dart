@@ -1,7 +1,6 @@
-import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'display_image_screen.dart'; // Import the display image screen file
+import 'package:camera/camera.dart';// Import the display image screen file
 
 class CameraScreen extends StatefulWidget {
   @override
@@ -56,6 +55,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Camera Screen'),

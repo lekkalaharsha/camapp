@@ -1,4 +1,4 @@
-import 'dart:io';
+
 import 'package:camapp/screens/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:camapp/screens/constapi.dart';
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: HomeScreen(),
     );
   }
 }

@@ -1,94 +1,113 @@
 import 'package:flutter/material.dart';
-import 'camera_screen.dart'; // Import the camera screen file
-import 'chatscreen.dart'; // Import the chat screen file
+import 'package:image_picker/image_picker.dart';
+import 'chatscreen.dart'; // Assuming the Chatscreen is in another file
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+void main() {
+  runApp(MyApp());
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _currentIndex = 0;
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
 
-  // Method to handle navigation when a bottom nav bar item is tapped
-  void _onBottomNavBarTapped(int index) async {
-    if (index == 1) {
-      // Navigate to the camera screen directly and capture an image
-      final imagePath = await Navigator.push(
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    Center(child: Text('Explore Screen')),
+    Center(child: Text('Food Labels Screen')),
+    Center(child: Text('Text Screen')),
+    Center(child: Text('Documents Screen')),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Future<void> _openCamera(BuildContext context) async {
+    ImagePicker picker = ImagePicker();
+    XFile? file = await picker.pickImage(source: ImageSource.camera);
+
+    if (file != null) {
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => CameraScreen(),
+          builder: (context) => Chatscreen(imagePath: file.path),
         ),
       );
-
-      // If an image was captured, navigate to the chat screen and pass the image path
-      if (imagePath != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Chatscreen(imagePath: imagePath),
-          ),
-        );
-      }
-    } else {
-      // Handle other navigation items if needed
-      setState(() {
-        _currentIndex = index;
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _currentIndex == 0
-          ? const Center(child: Text('Home Page'))
-          : const SizedBox.shrink(), // Prevent rendering if not on home page
+      appBar: AppBar(
+        title: Text('My App'),
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person_outline, color: Colors.blue),
+            onPressed: () {
+              print("hi");
+            },
+          ),
+        ],
+      ),
+      body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
-        color: Colors.blueAccent,
-        height: 80, // Adjust height for a larger nav bar
+        color: Colors.black,
+        padding: EdgeInsets.symmetric(vertical: 10),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: [
-              _buildNavBarItem(0, Icons.home, 'Home'),
-              _buildNavBarItem(1, Icons.camera_alt, 'Camera'),
-              _buildNavBarItem(2, Icons.search, 'Search'),
-              _buildNavBarItem(3, Icons.settings, 'Settings'),
-              // Add more items as needed
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              _buildNavItem(Icons.explore, 'Explore', 0,),
+              _buildNavItem(Icons.qr_code, 'Food labels', 1),
+              _buildNavItem(Icons.text_fields, 'Text', 2),
+              _buildNavItem(Icons.document_scanner, 'Documents', 3),
             ],
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openCamera(context), // Open camera on button press
+        child: Icon(Icons.camera),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-  // Widget to build each item in the bottom navigation bar
-  Widget _buildNavBarItem(int index, IconData icon, String label) {
-    bool isSelected = _currentIndex == index;
+  Widget _buildNavItem(IconData icon, String label, int index) {
     return GestureDetector(
-      onTap: () => _onBottomNavBarTapped(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0), // Increase horizontal padding
-        alignment: Alignment.center,
+      onTap: () => _onItemTapped(index),
+      
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Icon(
               icon,
-              size: 30, // Increase icon size
-              color: isSelected ? Colors.blue : Colors.grey,
+              color: _selectedIndex == index ? Colors.white : Colors.grey,
             ),
-            const SizedBox(height: 4), // Space between icon and label
+            SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16, // Increase font size for labels
-                color: isSelected ? Colors.blue : Colors.grey,
+                color: _selectedIndex == index ? Colors.white : Colors.grey,
               ),
             ),
           ],

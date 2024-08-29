@@ -4,7 +4,7 @@ import 'package:camapp/screens/constapi.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:camapp/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +21,7 @@ void main() async {
 
   runApp(MyApp(camera: firstCamera));
 }
+
 class MyApp extends StatelessWidget {
   final CameraDescription camera;
 
@@ -28,7 +29,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -36,7 +36,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Signinscreen(camera: camera,), // Pass the camera to HomeScreen
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),  // Add SplashScreen here
+        '/signin': (context) => Signinscreen(camera: camera),
+      },
     );
   }
 }

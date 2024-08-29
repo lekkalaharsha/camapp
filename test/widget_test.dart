@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 void main() {
   testWidgets('Navigation and Camera Button Test', (WidgetTester tester) async {
     // Build the app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp(camera: null,));
 
     // Verify that the initial screen is displayed (Explore Screen).
     expect(find.text('Explore Screen'), findsOneWidget);

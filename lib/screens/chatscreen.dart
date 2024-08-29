@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:image_picker/image_picker.dart';
 
-
 class Chatscreen extends StatefulWidget {
   final String? imagePath; // The captured image path
   final String? prompt; // The prompt for the image
@@ -25,7 +24,7 @@ class _ChatscreenState extends State<Chatscreen> {
     id: "1",
     firstName: "AI for all ",
     profileImage:
-        "img/img.png", // Replace with the actual path to your image
+        "assets/images/download.jpeg", // Replace with the actual path to your image
   );
 
   @override
@@ -110,23 +109,23 @@ class _ChatscreenState extends State<Chatscreen> {
         images: images,
       )
           .listen((event) {
-        ChatMessage? lastMessage = messages.firstOrNull;
-        if (lastMessage != null && lastMessage.user == geminiUser) {
-          lastMessage = messages.removeAt(0);
-          String response = event.content?.parts?.fold(
-                  "", (previous, current) => "$previous ${current.text}") ??
-              "";
-          lastMessage.text += response;
+        String response = event.content?.parts?.fold(
+                "", (previous, current) => "$previous ${current.text}") ??
+            "";
+
+        // Manually create a new message and concatenate the response
+        if (messages.isNotEmpty && messages.first.user == geminiUser) {
+          ChatMessage lastMessage = messages.removeAt(0);
+          lastMessage = ChatMessage(
+            user: geminiUser,
+            createdAt: lastMessage.createdAt,
+            text: lastMessage.text + response,
+            medias: lastMessage.medias,
+          );
           setState(() {
-            messages = [
-              lastMessage!,
-              ...messages
-            ];
+            messages = [lastMessage, ...messages];
           });
         } else {
-          String response = event.content?.parts?.fold(
-                  "", (previous, current) => "$previous ${current.text}") ??
-              "";
           ChatMessage message = ChatMessage(
             user: geminiUser,
             createdAt: DateTime.now(),

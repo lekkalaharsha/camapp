@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:image_picker/image_picker.dart';
 import 'chatscreen.dart'; // Import your chat screen here
 
 class HomeScreen extends StatefulWidget {
@@ -14,9 +13,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late CameraController _cameraController;
+  bool _isCameraInitialized = false;
   int _selectedIndex = 0;
-
-  // Define the screens to be displayed
 
   @override
   void initState() {
@@ -32,12 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       await _cameraController.initialize();
+      if (mounted) {
+        setState(() {
+          _isCameraInitialized = true;
+        });
+      }
     } catch (e) {
       print('Error initializing camera: $e');
-    }
-
-    if (mounted) {
-      setState(() {});
     }
   }
 
@@ -54,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _takePicture() async {
-    if (_cameraController.value.isInitialized) {
+    if (_isCameraInitialized && _cameraController.value.isInitialized) {
       try {
         XFile file = await _cameraController.takePicture();
         if (file != null) {
@@ -63,14 +62,14 @@ class _HomeScreenState extends State<HomeScreen> {
             case 0: // Explore
               prompt = "Describe the image?";
               break;
-            case 1: // Text
-              prompt = "what is food item";
+            case 1: // Food labels
+              prompt = "What is the food item?";
               break;
-              case 2: // Text
+            case 2: // Text
               prompt = "Read the text";
               break;
-              case 3: // Text
-              prompt = "Read the Documents";
+            case 3: // Documents
+              prompt = "Read the documents";
               break;
             default:
               prompt = "Describe the image?";
@@ -98,20 +97,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Welcome BOB',style: TextStyle(color: Colors.blueAccent),),
+        title: const Text('Welcome BOB',
+            style: TextStyle(color: Colors.blueAccent)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.blue),
             onPressed: () {
-              
+              // Handle profile or settings action here
             },
           ),
         ],
       ),
-      body: SizedBox.expand(
-        child: CameraPreview(_cameraController),
-      ),
+      body: _isCameraInitialized
+          ? SizedBox.expand(child: CameraPreview(_cameraController))
+          : Center(child: CircularProgressIndicator()),
       bottomNavigationBar: Container(
         color: Colors.black,
         padding: EdgeInsets.symmetric(vertical: 10),

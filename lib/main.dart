@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),  // Add SplashScreen here
-        '/signin': (context) => Signinscreen(camera: camera),
+        '/signin': (context) => SignInScreen(camera: camera,),
       },
     );
   }

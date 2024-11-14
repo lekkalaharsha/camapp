@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -29,15 +29,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _animationController.forward();
 
-    // Check user authentication status and navigate accordingly
-    Timer(const Duration(seconds: 3), () {
+    // Initialize Firebase and navigate
+    _initializeAndNavigate();
+  }
+
+  // Method to initialize Firebase and check user authentication status
+  Future<void> _initializeAndNavigate() async {
+    try {
+      await Firebase.initializeApp();
+
+      if (!mounted) return;
+
       User? user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         Navigator.of(context).pushReplacementNamed('/signin');
       } else {
         Navigator.of(context).pushReplacementNamed('/home');
       }
-    });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
   }
 
   @override

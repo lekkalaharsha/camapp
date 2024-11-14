@@ -6,22 +6,41 @@ import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class Signinscreen extends StatefulWidget {
+class SignInScreen extends StatefulWidget {
   final CameraDescription camera;
 
-  const Signinscreen({super.key, required this.camera});
+  const SignInScreen({super.key, required this.camera});
 
   @override
-  State<Signinscreen> createState() => _SigninscreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SigninscreenState extends State<Signinscreen> {
+class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _emailTextController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   // Method to handle sign-in
   Future<void> _signIn() async {
+    // Dismiss the keyboard
+    FocusScope.of(context).unfocus();
+
+    // Input validation
+    if (_emailTextController.text.isEmpty || _passwordTextController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in both email and password.')),
+      );
+      return;
+    }
+
+    if (!_emailTextController.text.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address.')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -37,9 +56,28 @@ class _SigninscreenState extends State<Signinscreen> {
           builder: (context) => HomeScreen(camera: widget.camera),
         ),
       );
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'No user found with this email.';
+          break;
+        case 'wrong-password':
+          message = 'Incorrect password. Please try again.';
+          break;
+        case 'invalid-email':
+          message = 'Invalid email format.';
+          break;
+        default:
+          message = 'Sign-in failed. Please try again later.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-in failed: ${e.toString()}')),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -80,19 +118,29 @@ class _SigninscreenState extends State<Signinscreen> {
 
                 // Email TextField
                 reusableTextField(
-                  "Enter Username",
-                  Icons.person_outline,
+                  "Enter Email",
+                  Icons.email_outlined,
                   false,
                   _emailTextController,
                 ),
                 const SizedBox(height: 20),
 
-                // Password TextField
+                // Password TextField with visibility toggle
                 reusableTextField(
                   "Enter Your Password",
                   Icons.lock_outline,
-                  true,
+                  !_isPasswordVisible,
                   _passwordTextController,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 30),
 

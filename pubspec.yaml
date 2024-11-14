@@ -44,6 +44,7 @@ dependencies:
   firebase_auth: ^4.15.2
   webview_flutter: ^4.0.0
   http: ^1.1.0
+  cloud_firestore: ^4.11.0
   wifi_iot: ^0.3.19+1
 
 dev_dependencies:

@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camera/camera.dart';
-import 'chatscreen.dart'; // Import your chat screen here
+import 'chatscreen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final CameraDescription camera;
@@ -37,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      print('Error initializing camera: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error initializing camera: $e')),
+      );
     }
   }
 
@@ -60,16 +63,16 @@ class _HomeScreenState extends State<HomeScreen> {
         if (file != null) {
           String prompt;
           switch (_selectedIndex) {
-            case 0: // Explore
+            case 0:
               prompt = "Describe the image?";
               break;
-            case 1: // Food labels
+            case 1:
               prompt = "What is the food item?";
               break;
-            case 2: // Text
+            case 2:
               prompt = "Read the text";
               break;
-            case 3: // Documents
+            case 3:
               prompt = "Read the documents";
               break;
             default:
@@ -87,108 +90,45 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       } catch (e) {
-        print('Error capturing image: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error capturing image: $e')),
+        );
       }
     } else {
-      print('Camera is not initialized');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Camera is not initialized')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-appBar: AppBar(
-  automaticallyImplyLeading: false,
-  title: const Text(
-    'Welcome BOB',
-    style: TextStyle(color: Colors.blueAccent),
-  ),
-  backgroundColor: Colors.black,
-  actions: [
-    IconButton(
-  icon: const Icon(Icons.logout, color: Colors.blue),
-  onPressed: () async {
-    // Show a confirmation dialog
-    bool confirmLogout = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: const Text('Logout'),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        );
-      },
-    );
-
-    // If user confirms, sign out and clear the navigation stack
-    if (confirmLogout == true) {
-      try {
-        await FirebaseAuth.instance.signOut();
-        Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging out: $e')),
-        );
-      }
-    }
-  },
-),
-
-    // IconButton(
-    //   icon: const Icon(Icons.logout, color: Colors.blue),
-    //   onPressed: () async {
-    //     // Show a confirmation dialog
-    //     bool confirmLogout = await showDialog(
-    //       context: context,
-    //       builder: (BuildContext context) {
-    //         return AlertDialog(
-    //           title: const Text('Logout'),
-    //           content: const Text('Are you sure you want to logout?'),
-    //           actions: [
-    //             TextButton(
-    //               child: const Text('Cancel'),
-    //               onPressed: () => Navigator.of(context).pop(false),
-    //             ),
-    //             TextButton(
-    //               child: const Text('Logout'),
-    //               onPressed: () => Navigator.of(context).pop(true),
-    //             ),
-    //           ],
-    //         );
-    //       },
-    //     );
-
-    //     // If user confirms, sign out and navigate to sign-in screen
-    //     if (confirmLogout == true) {
-    //       try {
-    //         await FirebaseAuth.instance.signOut();
-    //         Navigator.pushReplacementNamed(context, '/signin');
-    //       } catch (e) {
-    //         ScaffoldMessenger.of(context).showSnackBar(
-    //           SnackBar(content: Text('Error logging out: $e')),
-    //         );
-    //       }
-    //     }
-    //   },
-    // ),
-  ],
-),
-
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Welcome BOB',
+          style: TextStyle(color: Colors.blueAccent),
+        ),
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: Colors.blue),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: _isCameraInitialized
           ? SizedBox.expand(child: CameraPreview(_cameraController))
-          : Center(child: CircularProgressIndicator()),
+          : const Center(child: CircularProgressIndicator()),
       bottomNavigationBar: Container(
         color: Colors.black,
-        padding: EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -204,7 +144,7 @@ appBar: AppBar(
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _takePicture,
-        child: Icon(Icons.camera),
+        child: const Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -222,7 +162,7 @@ appBar: AppBar(
               icon,
               color: _selectedIndex == index ? Colors.white : Colors.grey,
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(

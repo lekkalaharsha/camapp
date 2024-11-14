@@ -5,10 +5,11 @@ import 'package:camapp/utils/colors_utils.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-class Signinscreen extends StatefulWidget {
-  final CameraDescription camera; // Add this line
 
-  const Signinscreen({super.key, required this.camera}); // Update constructor
+class Signinscreen extends StatefulWidget {
+  final CameraDescription camera;
+
+  const Signinscreen({super.key, required this.camera});
 
   @override
   State<Signinscreen> createState() => _SigninscreenState();
@@ -17,13 +18,42 @@ class Signinscreen extends StatefulWidget {
 class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _emailTextController = TextEditingController();
+  bool _isLoading = false;
+
+  // Method to handle sign-in
+  Future<void> _signIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailTextController.text.trim(),
+        password: _passwordTextController.text.trim(),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(camera: widget.camera),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign-in failed: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -37,59 +67,57 @@ class _SigninscreenState extends State<Signinscreen> {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              MediaQuery.of(context).size.height * 0.2,
-              20,
-              0,
+            padding: EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: MediaQuery.of(context).size.height * 0.1,
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                // Logo Widget
                 logoWidget('assets/images/import.jpg'),
                 const SizedBox(height: 30),
+
+                // Email TextField
                 reusableTextField(
                   "Enter Username",
                   Icons.person_outline,
                   false,
                   _emailTextController,
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+
+                // Password TextField
                 reusableTextField(
                   "Enter Your Password",
-                  Icons.verified_user,
+                  Icons.lock_outline,
                   true,
                   _passwordTextController,
                 ),
                 const SizedBox(height: 30),
-                resuableButton(
-                  context,
-                  () {
-                    FirebaseAuth.instance
-                        .signInWithEmailAndPassword(
-                          email: _emailTextController.text,
-                          password: _passwordTextController.text,
-                        )
-                        .then((value) => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HomeScreen(camera: widget.camera,)
-                              ),
-                            ));
-                  },
-                  'Sign In',
-                ),
-                const SizedBox(height: 30),
+
+                // Sign In Button with Loading Indicator
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : resuableButton(
+                        context,
+                        _signIn,
+                        'Sign In',
+                      ),
+                const SizedBox(height: 20),
+
+                // Sign Up Option
                 SignUpOption(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SignUpScreen(camera: widget.camera,),
+                        builder: (context) => SignUpScreen(camera: widget.camera),
                       ),
                     );
                   },
                 ),
-                const SizedBox(height: 80),
+                const SizedBox(height: 50),
               ],
             ),
           ),

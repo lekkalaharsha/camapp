@@ -45,7 +45,7 @@ class _SigninscreenState extends State<Signinscreen> {
             ),
             child: Column(
               children: <Widget>[
-                logoWidget('img/img.png'),
+                logoWidget('assets/images/import.jpg'),
                 const SizedBox(height: 30),
                 reusableTextField(
                   "Enter Username",

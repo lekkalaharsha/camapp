@@ -24,7 +24,7 @@ class _ChatscreenState extends State<Chatscreen> {
     id: "1",
     firstName: "AI for all ",
     profileImage:
-        "assets/images/download.jpeg", // Replace with the actual path to your image
+        "assets/images/import.jpg", // Replace with the actual path to your image
   );
 
   @override

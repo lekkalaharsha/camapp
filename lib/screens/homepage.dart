@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'chatscreen.dart'; // Import your chat screen here
@@ -96,19 +97,92 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome BOB',
-            style: TextStyle(color: Colors.blueAccent)),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.blue),
-            onPressed: () {
-              // Handle profile or settings action here
-            },
-          ),
-        ],
-      ),
+appBar: AppBar(
+  automaticallyImplyLeading: false,
+  title: const Text(
+    'Welcome BOB',
+    style: TextStyle(color: Colors.blueAccent),
+  ),
+  backgroundColor: Colors.black,
+  actions: [
+    IconButton(
+  icon: const Icon(Icons.logout, color: Colors.blue),
+  onPressed: () async {
+    // Show a confirmation dialog
+    bool confirmLogout = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Logout'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user confirms, sign out and clear the navigation stack
+    if (confirmLogout == true) {
+      try {
+        await FirebaseAuth.instance.signOut();
+        Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error logging out: $e')),
+        );
+      }
+    }
+  },
+),
+
+    // IconButton(
+    //   icon: const Icon(Icons.logout, color: Colors.blue),
+    //   onPressed: () async {
+    //     // Show a confirmation dialog
+    //     bool confirmLogout = await showDialog(
+    //       context: context,
+    //       builder: (BuildContext context) {
+    //         return AlertDialog(
+    //           title: const Text('Logout'),
+    //           content: const Text('Are you sure you want to logout?'),
+    //           actions: [
+    //             TextButton(
+    //               child: const Text('Cancel'),
+    //               onPressed: () => Navigator.of(context).pop(false),
+    //             ),
+    //             TextButton(
+    //               child: const Text('Logout'),
+    //               onPressed: () => Navigator.of(context).pop(true),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+
+    //     // If user confirms, sign out and navigate to sign-in screen
+    //     if (confirmLogout == true) {
+    //       try {
+    //         await FirebaseAuth.instance.signOut();
+    //         Navigator.pushReplacementNamed(context, '/signin');
+    //       } catch (e) {
+    //         ScaffoldMessenger.of(context).showSnackBar(
+    //           SnackBar(content: Text('Error logging out: $e')),
+    //         );
+    //       }
+    //     }
+    //   },
+    // ),
+  ],
+),
+
       body: _isCameraInitialized
           ? SizedBox.expand(child: CameraPreview(_cameraController))
           : Center(child: CircularProgressIndicator()),

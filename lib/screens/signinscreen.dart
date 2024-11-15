@@ -26,18 +26,15 @@ class _SignInScreenState extends State<SignInScreen> {
     // Dismiss the keyboard
     FocusScope.of(context).unfocus();
 
-    // Input validation
+    // Enhanced input validation
     if (_emailTextController.text.isEmpty || _passwordTextController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in both email and password.')),
-      );
+      _showSnackbar("Please fill in both email and password.");
       return;
     }
 
-    if (!_emailTextController.text.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email address.')),
-      );
+    final emailPattern = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    if (!emailPattern.hasMatch(_emailTextController.text)) {
+      _showSnackbar("Please enter a valid email address.");
       return;
     }
 
@@ -66,24 +63,28 @@ class _SignInScreenState extends State<SignInScreen> {
           message = 'Incorrect password. Please try again.';
           break;
         case 'invalid-email':
-          message = 'Invalid email format.';
+          message = 'The email address is invalid.';
+          break;
+        case 'user-disabled':
+          message = 'This user account has been disabled.';
           break;
         default:
-          message = 'Sign-in failed. Please try again later.';
+          message = 'An unexpected error occurred. Please try again later.';
+          break;
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      _showSnackbar(message);
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  // Helper method to show a Snackbar
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -105,10 +106,7 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: MediaQuery.of(context).size.height * 0.1,
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 100, 20, 0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -134,6 +132,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.white70,
                     ),
                     onPressed: () {
                       setState(() {
@@ -147,7 +146,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 // Sign In Button with Loading Indicator
                 _isLoading
                     ? const CircularProgressIndicator()
-                    : resuableButton(
+                    : reusableButton(
                         context,
                         _signIn,
                         'Sign In',

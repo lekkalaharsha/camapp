@@ -1,3 +1,4 @@
+import 'package:camapp/screens/homepage.dart';
 import 'package:camapp/screens/signinscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:camapp/screens/constapi.dart';
@@ -10,20 +11,28 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // Initialize the list of available cameras
-  final cameras = await availableCameras();
-  final firstCamera = cameras.first;
+  CameraDescription? firstCamera;
+  try {
+    // Initialize the list of available cameras
+    final cameras = await availableCameras();
+    firstCamera = cameras.isNotEmpty ? cameras.first : null;
+  } catch (e) {
+    print("Error initializing camera: $e");
+    firstCamera = null; // Fallback if camera initialization fails
+  }
 
   // Initialize Gemini API
-  Gemini.init(
-    apiKey: GEMINI_API_KEY,
-  );
+  try {
+    Gemini.init(apiKey: GEMINI_API_KEY);
+  } catch (e) {
+    print("Error initializing Gemini API: $e");
+  }
 
   runApp(MyApp(camera: firstCamera));
 }
 
 class MyApp extends StatelessWidget {
-  final CameraDescription camera;
+  final CameraDescription? camera;
 
   const MyApp({super.key, required this.camera});
 
@@ -33,14 +42,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-        primaryColor:  Colors.blueAccent,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const SplashScreen(),  // Add SplashScreen here
-        '/signin': (context) => SignInScreen(camera: camera,),
+        '/': (context) => const SplashScreen(),
+        '/signin': (context) => SignInScreen(camera: camera!),
+        '/home': (context) => HomeScreen(camera: camera!), 
       },
     );
   }

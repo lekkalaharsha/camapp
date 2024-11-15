@@ -1,41 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'package:http/http.dart' as http;
+import 'firebase_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'dart:convert';
 
 class WiFiConnectScreen extends StatefulWidget {
+  const WiFiConnectScreen({super.key});
+
   @override
   _WiFiConnectScreenState createState() => _WiFiConnectScreenState();
 }
 
 class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
-  List<WifiNetwork?> _wifiNetworks = [];
   bool _isConnected = false;
-  final String _ssid = "YourDeviceSSID"; // Replace with your device SSID
-  final String _password = "YourDevicePassword"; // Replace with your device password
+  String _macAddress = "";
+  final FirebaseService _firebaseService = FirebaseService();
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? _qrController;
+  String _ssid = "";
+  String _password = "";
 
   @override
   void initState() {
     super.initState();
-    _scanForWiFiNetworks();
+    _requestPermissions();
   }
 
-  // Method to scan for available Wi-Fi networks
-  Future<void> _scanForWiFiNetworks() async {
+  Future<void> _requestPermissions() async {
+    await Permission.camera.request();
+    await Permission.location.request();
+  }
+
+  // Method to manually start QR scanning
+  void _startQRScanner() {
+    _qrController?.resumeCamera();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Scanning for QR Code...")),
+    );
+  }
+
+  // QR Code Scanner
+  void _onQRViewCreated(QRViewController controller) {
+    _qrController = controller;
+    controller.scannedDataStream.listen((scanData) {
+      final qrData = scanData.code;
+      if (qrData != null) {
+        _parseQRCode(qrData);
+        _qrController?.pauseCamera();
+      }
+    });
+  }
+
+  // Parse QR Code Data
+  void _parseQRCode(String qrData) {
     try {
-      List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
-      setState(() {
-        _wifiNetworks = networks;
-      });
+      final data = jsonDecode(qrData);
+      _ssid = data['ssid'] ?? "";
+      _password = data['password'] ?? "";
+
+      if (_ssid.isNotEmpty && _password.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Wi-Fi Credentials Scanned: SSID=$_ssid")),
+        );
+        _connectToWiFi(_ssid, _password);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid QR Code Data")),
+        );
+      }
     } catch (e) {
-      print("Error scanning Wi-Fi networks: $e");
+      print("Error parsing QR code: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to parse QR code")),
+      );
     }
   }
 
-  // Method to connect to a specific Wi-Fi network
-  Future<void> _connectToWiFi() async {
+  // Connect to Wi-Fi
+  Future<void> _connectToWiFi(String ssid, String password) async {
+    await _requestPermissions();
+
     try {
       bool isConnected = await WiFiForIoTPlugin.connect(
-        _ssid,
-        password: _password,
+        ssid,
+        password: password,
         joinOnce: true,
         security: NetworkSecurity.WPA,
       );
@@ -44,42 +94,79 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
         setState(() {
           _isConnected = true;
         });
-        print("Connected to Wi-Fi: $_ssid");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Connected to Wi-Fi: $ssid")),
+        );
+        _fetchMacAddress();
       } else {
-        print("Failed to connect to Wi-Fi.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to connect to Wi-Fi.")),
+        );
       }
     } catch (e) {
       print("Error connecting to Wi-Fi: $e");
     }
   }
 
+  // Fetch MAC Address
+  Future<void> _fetchMacAddress() async {
+    try {
+      final response = await http.get(Uri.parse("http://192.168.4.1/mac"));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _macAddress = response.body.trim();
+        });
+        await _firebaseService.storeDeviceData(_macAddress, _ssid, "ESP32 Device");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Device paired successfully! MAC: $_macAddress")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to fetch MAC address.")),
+        );
+      }
+    } catch (e) {
+      print("Error fetching MAC address: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _qrController?.stopCamera();
+    _qrController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Wi-Fi Connect"),
-      ),
+      appBar: AppBar(title: const Text("Pair Device")),
       body: Column(
         children: [
-          ElevatedButton(
-            onPressed: _connectToWiFi,
-            child: const Text("Connect to Wi-Fi"),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              "Click the button below to scan the QR code on your device.",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
-          const SizedBox(height: 20),
-          _isConnected
-              ? const Text("Connected to Wi-Fi!")
-              : const Text("Not connected"),
-          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _startQRScanner,
+            child: const Text("Scan QR Code"),
+          ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _wifiNetworks.length,
-              itemBuilder: (context, index) {
-                final network = _wifiNetworks[index];
-                return ListTile(
-                  title: Text(network?.ssid ?? "Unknown SSID"),
-                  subtitle: Text(network?.bssid ?? "Unknown BSSID"),
-                );
-              },
+            flex: 4,
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                borderColor: Colors.blueAccent,
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 250,
+              ),
             ),
           ),
         ],

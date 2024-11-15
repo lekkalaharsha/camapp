@@ -5,24 +5,31 @@ class FirebaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> storeDeviceMacAddress(String macAddress) async {
+  Future<void> storeDeviceData(String macAddress, String ssid, String deviceName) async {
     User? user = _auth.currentUser;
 
     if (user != null) {
       try {
-        // Reference to the user's document
         DocumentReference userDoc = _firestore.collection('users').doc(user.uid);
 
-        // Store the MAC address under the "devices" subcollection
+        DocumentSnapshot existingDevice = await userDoc.collection('devices').doc(macAddress).get();
+
+        if (existingDevice.exists) {
+          print("Device with MAC address $macAddress is already stored.");
+          return;
+        }
+
         await userDoc.collection('devices').doc(macAddress).set({
           'macAddress': macAddress,
+          'ssid': ssid,
           'pairedAt': FieldValue.serverTimestamp(),
+          'deviceName': deviceName,
         });
 
-        print("MAC address $macAddress successfully stored in Firestore.");
+        print("Device data successfully stored in Firestore.");
       } catch (e) {
-        print("Error storing MAC address: $e");
-        throw Exception("Failed to store MAC address.");
+        print("Error storing device data: $e");
+        throw Exception("Failed to store device data: $e");
       }
     } else {
       print("No user is currently logged in.");

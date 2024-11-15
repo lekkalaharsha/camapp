@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late CameraController _cameraController;
   bool _isCameraInitialized = false;
   int _selectedIndex = 0;
@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
   }
 
@@ -38,16 +39,29 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error initializing camera: $e')),
+        SnackBar(content: Text('Error initializing camera: $e. Tap to retry.')),
       );
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cameraController.dispose();
     super.dispose();
   }
+
+  @override
+
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_cameraController.value.isInitialized) return;
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _cameraController.pausePreview();
+    } else if (state == AppLifecycleState.resumed) {
+      _cameraController.resumePreview();
+    }
+  }
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -113,18 +127,24 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.blue),
-            onPressed: () {
+            onPressed: () async {
+              await _cameraController.pausePreview();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
+              ).then((_) => _initializeCamera());
             },
           ),
         ],
       ),
       body: _isCameraInitialized
           ? SizedBox.expand(child: CameraPreview(_cameraController))
-          : const Center(child: CircularProgressIndicator()),
+          : Center(
+              child: ElevatedButton(
+                onPressed: _initializeCamera,
+                child: const Text("Retry Camera Initialization"),
+              ),
+            ),
       bottomNavigationBar: Container(
         color: Colors.black,
         padding: const EdgeInsets.symmetric(vertical: 10),

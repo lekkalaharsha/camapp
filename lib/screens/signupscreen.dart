@@ -18,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailTextController = TextEditingController();
   final TextEditingController _userTextController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   // Method to validate input fields
   bool _validateInputs() {
@@ -25,7 +26,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _showSnackbar("Username cannot be empty");
       return false;
     }
-    if (_emailTextController.text.isEmpty || !_emailTextController.text.contains('@')) {
+    final emailPattern = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    if (!emailPattern.hasMatch(_emailTextController.text)) {
       _showSnackbar("Enter a valid email address");
       return false;
     }
@@ -63,8 +65,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
           builder: (context) => HomeScreen(camera: widget.camera),
         ),
       );
-    } catch (error) {
-      _showSnackbar("Error: ${error.toString()}");
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = 'This email is already in use. Please use a different email.';
+          break;
+        case 'weak-password':
+          message = 'The password provided is too weak.';
+          break;
+        case 'invalid-email':
+          message = 'The email address is invalid.';
+          break;
+        default:
+          message = 'An unexpected error occurred. Please try again later.';
+          break;
+      }
+      _showSnackbar(message);
     } finally {
       setState(() {
         _isLoading = false;
@@ -93,9 +110,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // Logo or Title Text
                 const Text(
                   'Create Account',
                   style: TextStyle(
@@ -124,19 +139,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password TextField
+                // Password TextField with visibility toggle
                 reusableTextField(
                   "Enter Your Password",
                   Icons.lock_outline,
-                  true,
+                  !_isPasswordVisible,
                   _passwordTextController,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.white70,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 30),
 
                 // Sign-Up Button with Loading Indicator
                 _isLoading
                     ? const CircularProgressIndicator()
-                    : resuableButton(
+                    : reusableButton(
                         context,
                         _signUp,
                         'SIGN UP',

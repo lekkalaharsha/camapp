@@ -49,6 +49,7 @@ dependencies:
   mobile_scanner: ^5.0.0
   flutter_tts: 
   firebase_storage: ^11.0.0
+  connectivity_plus: 
 
 dev_dependencies:
   flutter_test:

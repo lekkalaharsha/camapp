@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          'Welcome BOB',
+          'Welcome to AI For ALL',
           style: TextStyle(color: Colors.blueAccent),
         ),
         backgroundColor: Colors.black,

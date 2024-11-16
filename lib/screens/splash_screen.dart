@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Delay for logo visibility and then initialize Firebase
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
-        _statusMessage = "Initializing Firebase...";
+        _statusMessage = "Initializing ....";
       });
       _initializeAndNavigate();
     });
@@ -112,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
               const SizedBox(height: 20),
               const Text(
-                'AI for All',
+                'Smart build labs Wellcomes you  ',
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,

@@ -5,6 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:http/http.dart' as http;
 import 'firebase_service.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 import 'dart:convert';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -16,6 +18,8 @@ class WiFiConnectScreen extends StatefulWidget {
 }
 
 class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
+  final FlutterTts _flutterTts = FlutterTts();
+
   bool _isConnected = false;
   bool _isLoading = false;
   String _macAddress = "";
@@ -23,6 +27,7 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
   String _ssid = "";
   String _password = "";
   String connectionStatus = 'Not connected';
+  
 
   @override
   void initState() {
@@ -39,6 +44,14 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
     }
   }
 
+  Future<void> _speak(String message) async {
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(0.9);
+    await _flutterTts.speak(message);
+  }
+
+
   Future<bool> _requestCameraPermission() async {
     var status = await Permission.camera.status;
     if (status.isDenied) {
@@ -52,15 +65,16 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
 
   void _onDetect(Barcode barcode) {
     final String? qrData = barcode.rawValue;
-
     if (qrData != null) {
       _parseQRCode(qrData);
+      MobileScannerController().stop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No QR code detected.")),
       );
     }
   }
+
 
   void _parseQRCode(String qrData) {
     try {
@@ -114,6 +128,18 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
           _isConnected = true;
           connectionStatus = 'Connected to $ssid';
         });
+
+        // Show a success snackbar message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Successfully connected to Wi-Fi: $ssid"),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await _speak("Successfully connected to Wi-Fi, SSID: $ssid");
+
+        // Fetch the MAC address
         _fetchMacAddress();
       } else {
         _showRetryDialog();
@@ -126,6 +152,25 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
     }
   }
 
+
+  void _showConnectionDialog(String ssid) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Connection Successful"),
+        content: Text("Successfully connected to Wi-Fi: $ssid"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _fetchMacAddress() async {
     try {
       final response = await http.get(Uri.parse("http://192.168.4.1/mac"));
@@ -134,9 +179,11 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
         setState(() {
           _macAddress = response.body.trim();
         });
-        await _firebaseService.storeDeviceData(_macAddress, _ssid, "ESP32 Device");
+        await _firebaseService.storeDeviceData(
+            _macAddress, _ssid, "ESP32 Device");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Device paired successfully! MAC: $_macAddress")),
+          SnackBar(
+              content: Text("Device paired successfully! MAC: $_macAddress")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -172,69 +219,97 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Wi-Fi Pairing"),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Stack(
-        children: [
-          // Gradient Background
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  hextStringToColor("CB2B93"),
-                  hextStringToColor("9546C4"),
-                  hextStringToColor("5E61F4"),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  "Scan the QR code to connect to Wi-Fi.",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-              Expanded(
-                child: MobileScanner(
-                  controller: MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates),
-                  onDetect: (capture) {
-                    for (final barcode in capture.barcodes) {
-                      if (barcode.rawValue != null) {
-                        _onDetect(barcode);
-                        break;
-                      }
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                connectionStatus,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: _isConnected ? Colors.greenAccent : Colors.redAccent,
-                ),
-              ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Wi-Fi Pairing"),
+      backgroundColor: Colors.blueAccent,
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              hextStringToColor("CB2B93"),
+              hextStringToColor("9546C4"),
+              hextStringToColor("5E61F4"),
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+    body: Stack(
+      children: [
+        // Background gradient
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                hextStringToColor("CB2B93"),
+                hextStringToColor("9546C4"),
+                hextStringToColor("5E61F4"),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        // Main content
+        Column(
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              "Scan QR Code to Connect",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+              Text(
+              connectionStatus,
+              style: TextStyle(
+                fontSize: 16,
+                color: _isConnected ? Colors.green : Colors.white,
+              ),
+            ),
+            const SizedBox(height: 10),
+            // QR code scanner
+            // Expanded camera view
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 200,top: 50,left: 20,right: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.blueAccent, width: 3),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: MobileScanner(
+                    controller: MobileScannerController(),
+                    onDetect: (capture) {
+                      for (final barcode in capture.barcodes) {
+                        if (barcode.rawValue != null) {
+                          _onDetect(barcode);
+                          break;
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          
+          ],
+        ),
+        // Loading indicator
+        if (_isLoading)
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
+      ],
+    ),
+  );
+}
+
 }

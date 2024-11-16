@@ -10,23 +10,13 @@ class FirebaseService {
 
     if (user != null) {
       try {
-        String email = user.email ?? "unknown";
         DocumentReference userDoc = _firestore.collection('users').doc(user.uid);
-
-        // Store the user's email if it doesn't already exist
-        await userDoc.set(
-          {
-            'email': email,
-          },
-          SetOptions(merge: true), // Merge option to avoid overwriting existing data
-        );
 
         // Check if the device already exists
         DocumentSnapshot existingDevice = await userDoc.collection('devices').doc(macAddress).get();
 
         if (existingDevice.exists) {
-          print("Device with MAC address $macAddress is already stored.");
-          return;
+          print("Device with MAC address $macAddress is already stored. Updating data.");
         }
 
         // Store or update device data
@@ -35,10 +25,9 @@ class FirebaseService {
           'ssid': ssid,
           'pairedAt': FieldValue.serverTimestamp(),
           'deviceName': deviceName,
-          'registeredBy': email,
-        });
+        }, SetOptions(merge: true));
 
-        print("Device data successfully stored in Firestore.");
+        print("Device data successfully stored/updated in Firestore.");
       } catch (e) {
         print("Error storing device data: $e");
         throw Exception("Failed to store device data: $e");

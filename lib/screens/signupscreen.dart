@@ -3,7 +3,6 @@ import 'package:camapp/screens/homepage.dart';
 import 'package:camapp/utils/colors_utils.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -18,8 +17,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _emailTextController = TextEditingController();
   final TextEditingController _userTextController = TextEditingController();
-  final TextEditingController _displayNameController = TextEditingController();
-  final TextEditingController _birthDateController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
 
@@ -27,14 +24,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _validateInputs() {
     if (_userTextController.text.isEmpty) {
       _showSnackbar("Username cannot be empty");
-      return false;
-    }
-    if (_displayNameController.text.isEmpty) {
-      _showSnackbar("Display name cannot be empty");
-      return false;
-    }
-    if (_birthDateController.text.isEmpty) {
-      _showSnackbar("Birth date cannot be empty");
       return false;
     }
     final emailPattern = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
@@ -65,31 +54,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
-      // Create user with email and password
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailTextController.text.trim(),
         password: _passwordTextController.text.trim(),
       );
-
-      User? user = userCredential.user;
-      if (user != null) {
-        // Store additional user information in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'username': _userTextController.text.trim(),
-          'displayName': _displayNameController.text.trim(),
-          'birthDate': _birthDateController.text.trim(),
-          'email': _emailTextController.text.trim(),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        // Navigate to HomeScreen on successful sign-up
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(camera: widget.camera),
-          ),
-        );
-      }
+      // Navigate to HomeScreen on successful sign-up
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(camera: widget.camera),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
@@ -152,24 +127,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Icons.person_outline,
                   false,
                   _userTextController,
-                ),
-                const SizedBox(height: 20),
-
-                // Display Name TextField
-                reusableTextField(
-                  "Enter Display Name",
-                  Icons.person,
-                  false,
-                  _displayNameController,
-                ),
-                const SizedBox(height: 20),
-
-                // Birth Date TextField
-                reusableTextField(
-                  "Enter Birth Date (DD/MM/YYYY)",
-                  Icons.calendar_today,
-                  false,
-                  _birthDateController,
                 ),
                 const SizedBox(height: 20),
 

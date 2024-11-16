@@ -1,7 +1,9 @@
+import 'package:camapp/screens/wifi_connect_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camapp/utils/colors_utils.dart';
-import 'wifi_connect_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -77,7 +79,8 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: ListTile(
-                      leading: const Icon(Icons.email, color: Colors.blueAccent),
+                      leading:
+                          const Icon(Icons.email, color: Colors.blueAccent),
                       title: const Text('Email'),
                       subtitle: Text(user?.email ?? 'N/A'),
                     ),
@@ -89,31 +92,43 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: ListTile(
-                      leading: const Icon(Icons.person, color: Colors.blueAccent),
+                      leading:
+                          const Icon(Icons.person, color: Colors.blueAccent),
                       title: const Text('Display Name'),
                       subtitle: Text(user?.displayName ?? 'N/A'),
                     ),
                   ),
                   const SizedBox(height: 30),
 
-                  // Pair Device Button
+// Pair Device Button
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
+                      // Ensure camera permission is granted before navigating
+                      var status = await Permission.camera.status;
+                      if (status.isDenied || status.isPermanentlyDenied) {
+                        await Permission.camera.request();
+                      }
+
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const WiFiConnectScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const WiFiConnectScreen(),
+                          fullscreenDialog: true,
+                        ),
                       );
                     },
                     icon: const Icon(Icons.link),
                     label: const Text('Pair Device'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 60, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
 
                   // Edit Profile Button
@@ -125,7 +140,8 @@ class ProfileScreen extends StatelessWidget {
                     label: const Text('Edit Profile'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 60, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -141,15 +157,18 @@ class ProfileScreen extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Logout'),
-                            content: const Text('Are you sure you want to logout?'),
+                            content:
+                                const Text('Are you sure you want to logout?'),
                             actions: [
                               TextButton(
                                 child: const Text('Cancel'),
-                                onPressed: () => Navigator.of(context).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
                               ),
                               TextButton(
                                 child: const Text('Logout'),
-                                onPressed: () => Navigator.of(context).pop(true),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
                               ),
                             ],
                           );
@@ -159,7 +178,8 @@ class ProfileScreen extends StatelessWidget {
                       if (confirmLogout == true) {
                         try {
                           await FirebaseAuth.instance.signOut();
-                          Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, '/signin', (route) => false);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error logging out: $e')),
@@ -169,7 +189,8 @@ class ProfileScreen extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 60, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),

@@ -6,6 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:image_picker/image_picker.dart';
 
 // Mock classes for CameraDescription and ImagePicker
+// ignore: must_be_immutable
 class MockCameraDescription extends Mock implements CameraDescription {}
 
 class MockImagePicker extends Mock implements ImagePicker {}

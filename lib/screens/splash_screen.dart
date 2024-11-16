@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         _statusMessage = user == null ? "Navigating to Sign In..." : "Navigating to Home...";
       });
 
-      await Future.delayed(const Duration(seconds: 8));
+      await Future.delayed(const Duration(seconds: 2));
 
       if (user == null) {
         debugPrint("SplashScreen: Navigating to SignIn screen");

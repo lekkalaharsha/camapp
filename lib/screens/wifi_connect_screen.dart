@@ -1,4 +1,4 @@
-import 'package:camapp/utils/colors_utils.dart';
+import 'package:smartbuildlabs/utils/colors_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wifi_iot/wifi_iot.dart';

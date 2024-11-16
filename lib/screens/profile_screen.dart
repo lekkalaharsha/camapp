@@ -1,8 +1,8 @@
-import 'package:camapp/screens/wifi_connect_screen.dart';
+import 'package:smartbuildlabs/screens/wifi_connect_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:camapp/utils/colors_utils.dart';
+import 'package:smartbuildlabs/utils/colors_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ProfileScreen extends StatefulWidget {

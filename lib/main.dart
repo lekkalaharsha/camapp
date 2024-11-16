@@ -1,11 +1,11 @@
-import 'package:camapp/screens/homepage.dart';
-import 'package:camapp/screens/signinscreen.dart';
+import 'package:smartbuildlabs/screens/homepage.dart';
+import 'package:smartbuildlabs/screens/signinscreen.dart';
 import 'package:flutter/material.dart';
-import 'package:camapp/screens/constapi.dart';
+import 'package:smartbuildlabs/screens/constapi.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:camapp/screens/splash_screen.dart';
+import 'package:smartbuildlabs/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

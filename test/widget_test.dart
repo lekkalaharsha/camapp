@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:camapp/main.dart'; // Adjust the import path as needed
+import 'package:smartbuildlabs/main.dart'; // Adjust the import path as needed
 import 'package:camera/camera.dart';
 import 'package:mockito/mockito.dart';
 import 'package:image_picker/image_picker.dart';

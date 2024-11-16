@@ -1,6 +1,6 @@
-import 'package:camapp/reuseable_wigit.dart/reuseable.dart';
-import 'package:camapp/screens/homepage.dart';
-import 'package:camapp/utils/colors_utils.dart';
+import 'package:smartbuildlabs/reuseable_wigit.dart/reuseable.dart';
+import 'package:smartbuildlabs/screens/homepage.dart';
+import 'package:smartbuildlabs/utils/colors_utils.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

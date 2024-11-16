@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:camapp/utils/colors_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'firebase_service.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-import 'dart:convert';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class WiFiConnectScreen extends StatefulWidget {
@@ -47,7 +45,7 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
   Future<void> _speak(String message) async {
     await _flutterTts.setLanguage("en-US");
     await _flutterTts.setPitch(1.0);
-    await _flutterTts.setSpeechRate(0.9);
+    await _flutterTts.setSpeechRate(1);
     await _flutterTts.speak(message);
   }
 
@@ -173,26 +171,39 @@ class _WiFiConnectScreenState extends State<WiFiConnectScreen> {
 
   Future<void> _fetchMacAddress() async {
     try {
-      final response = await http.get(Uri.parse("http://192.168.4.1/mac"));
+      // Fetch the MAC address (BSSID) of the currently connected Wi-Fi network
+      String? macAddress = await WiFiForIoTPlugin.getBSSID();
 
-      if (response.statusCode == 200) {
+      if (macAddress != null && macAddress.isNotEmpty) {
         setState(() {
-          _macAddress = response.body.trim();
+          _macAddress = macAddress;
         });
+
+        // Store the device data in Firebase
         await _firebaseService.storeDeviceData(
-            _macAddress, _ssid, "ESP32 Device");
+          _macAddress,
+          _ssid,
+          "ESP32 Device",
+        );
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text("Device paired successfully! MAC: $_macAddress")),
+            content: Text("Device paired successfully! MAC: $_macAddress"),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
+        // Handle case where MAC address is not fetched
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to fetch MAC address.")),
         );
       }
     } catch (e) {
+      // Error handling for unexpected issues
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("MAC address fetch error: $e")),
+        SnackBar(content: Text("Error fetching MAC address: $e")),
       );
     }
   }

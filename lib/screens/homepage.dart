@@ -73,43 +73,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_isCameraInitialized && _cameraController.value.isInitialized) {
       try {
         XFile file = await _cameraController.takePicture();
-        if (file != null) {
-          String prompt;
-          switch (_selectedIndex) {
-            case 0:
-              prompt = "Describe the image?";
-              break;
-            case 1:
-              prompt = "What is the food item?";
-              break;
-            case 2:
-              prompt = "Read the text";
-              break;
-            case 3:
-              prompt = "Read the documents";
-              break;
-            default:
-              prompt = "Describe the image?";
-              break;
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Chatscreen(
-                imagePath: file.path,
-                prompt: prompt,
-              ),
-            ),
-          );
+        String prompt;
+        switch (_selectedIndex) {
+          case 0:
+            prompt = "Describe the image?";
+            break;
+          case 1:
+            prompt = "What is the food item?";
+            break;
+          case 2:
+            prompt = "Read the text";
+            break;
+          case 3:
+            prompt = "Read the documents";
+            break;
+          default:
+            prompt = "Describe the image?";
+            break;
         }
-      } catch (e) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Chatscreen(
+              imagePath: file.path,
+              prompt: prompt,
+            ),
+          ),
+        );
+            } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error capturing image: $e')),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Camera is not initialized')),
+        const SnackBar(content: Text('Camera is not initialized')),
       );
     }
   }

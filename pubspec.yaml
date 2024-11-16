@@ -48,6 +48,7 @@ dependencies:
   wifi_iot: ^0.3.19+1
   mobile_scanner: ^5.0.0
   flutter_tts: 
+  firebase_storage: ^11.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smartbuildlabs/main.dart'; // Adjust the import path as needed
+import 'package:smartbuildlabs/main.dart';
 import 'package:camera/camera.dart';
-import 'package:mockito/mockito.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
 
 // Mock classes for CameraDescription and ImagePicker
-// ignore: must_be_immutable
 class MockCameraDescription extends Mock implements CameraDescription {}
 
 class MockImagePicker extends Mock implements ImagePicker {}
@@ -14,6 +14,15 @@ class MockImagePicker extends Mock implements ImagePicker {}
 void main() {
   final mockCamera = MockCameraDescription();
   final mockImagePicker = MockImagePicker();
+
+  setUp(() {
+    // Setup for mock objects
+    when(mockImagePicker.pickImage(source: ImageSource.camera)).thenAnswer((_) async => null);
+  });
+
+  tearDown(() {
+    // Cleanup if necessary
+  });
 
   testWidgets('Navigation and Camera Button Test', (WidgetTester tester) async {
     // Build the app with a mock camera.
@@ -33,11 +42,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.camera));
     await tester.pump();
 
-    // Mock the image picker function and verify it is called.
-    when(mockImagePicker.pickImage(source: ImageSource.camera)).thenAnswer((_) async => null);
-
-    // Verify the camera function is called.
-    expect(find.text('Read the text'), findsOneWidget);
+    // Verify that the image picker function is called.
+    verify(mockImagePicker.pickImage(source: ImageSource.camera)).called(1);
   });
 
   testWidgets('Tab Selection Test', (WidgetTester tester) async {
